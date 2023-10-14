@@ -48,3 +48,9 @@ The `sample sheet` for alignment is the output from the [trim-fq-nf](https://git
 
 ![Sample_sheet](img/alignment_sample_sheet.jpg)
 
+## TODO list
+
+* Add custom parameters
+* Add cluster profile
+* Create module containers
+
