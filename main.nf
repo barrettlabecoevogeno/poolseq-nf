@@ -54,7 +54,6 @@ process genome_prep_bwa {
     """
 }
 
-
 /* 
     FastQC
 */
@@ -75,11 +74,9 @@ process fastqc {
     """
 }
 
-
 /* 
     MultiQC
 */
-
 
 process MULTIQC {
     publishDir "${params.publish_dir}/02_QC/MultiQC", mode:'copy'
@@ -96,9 +93,8 @@ process MULTIQC {
     """
 }
 
-
 /* 
-    fastp!
+    fastp
 */
 process fastp {
 
@@ -116,8 +112,6 @@ process fastp {
     fastp -i ${fq1} ${fq2} -o trimmed_${fq1} -O trimmed_${fq2} --unpaired1 unpaired${fq1} --unpaired2 unpaired${fq2} --failed_out ${row.id}_failed.fastq.gz --detect_adapter_for_pe -q 20 -l 50 -g
     """
 }
-
-
 
 /* 
     Alignment
@@ -206,6 +200,10 @@ process mark_dups {
     """
 }
 
+/* 
+    bam2mpileup
+*/
+
 process samtools_mpileup {
     
     //tag { pool }
@@ -231,6 +229,10 @@ process samtools_mpileup {
     """
 }
 
+/* 
+    mpileup2sync
+*/
+
 process mpileup_to_sync {
     publishDir "${params.publish_dir}/08_sync", mode: 'copy'
     input:
@@ -245,20 +247,23 @@ process mpileup_to_sync {
     """
 }
 
+/* 
+    analysis
+*/
+
 process fst {
-    publishDir "${params.publish_dir}/09_fst", mode: 'copy'
+    publishDir "${params.publish_dir}/08_fst", mode: 'copy'
     input:
     file(sync)
+    path(bwa_idx)
 
     output:
-    path("*.sync"), emit: "sync"
+    path("*.*"), emit: "fst"
     script:
     """
-    grenedalf sync --pileup-path *.mpileup --pileup-min-base-qual 20 --threads 8 --reference-genome-fai-file *.fai
+    grenedalf fst --sync-path *.sync --window-type sliding --window-sliding-width 100 --method unbiased-nei --pool-sizes 2 --reference-genome-fai-file *.fai
     """
 }
-
-
 
 workflow {
         genome_prep_bwa(params.genome)
@@ -274,6 +279,6 @@ workflow {
 
         samtools_mpileup(mark_dups.out.npr.collect(), params.genome, genome_prep_bwa.out.bwa_idx)
         mpileup_to_sync(samtools_mpileup.out.mpileup, genome_prep_bwa.out.bwa_idx)
-        fst(mpileup_to_sync.out.sync)
+        fst(mpileup_to_sync.out.sync, genome_prep_bwa.out.bwa_idx)
 }
 
