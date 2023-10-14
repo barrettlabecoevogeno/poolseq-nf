@@ -36,7 +36,7 @@ nextflow run main.nf --sample_sheet sample_sheet.csv --genome "/home/$USER/scrat
 
 ## --sample_sheet
 
-The `sample sheet` for alignment is the output from the [trim-fq-nf](https://github.com/AndersenLab/trim-fq-nf) pipeline. the `sample sheet` has the following columns:
+The `sample sheet` has the following columns:
 
 * __pool__ - the name of the pool. Multiple sequencing runs of the same strain are merged together.
 * __pl__ - Sequencing technology used to generate the sequencing data. Valid values: ILLUMINA, SOLID, LS454, HELICOS and PACBIO.
