@@ -2,7 +2,7 @@
 
 ## Pipeline Summary
 
-| Step                                         |  
+| Step                                         |                  |
 | -------------------------------------------- | ---------------- |
 | Generate Reference Genome Index              | bwa-mem/samtools |
 | Raw data QC                                  | FastQC/MultiQC   |
@@ -20,13 +20,13 @@ Dependencies:
 
 ```
 module load nextflow
-module load fastqc/0.11.9
-module load bwa
-module load sambamba
-module load samtools
 module load python
-module load picard
+module load bwa
+module load fastqc/0.11.9
 module load fastp
+module load sambamba
+module load picard
+module load samtools
 ```
 
 [grenedalf](https://github.com/lczech/grenedalf)
