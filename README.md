@@ -1,5 +1,19 @@
 # Usage
 
+## Pipeline Summary
+
+| Step                                         |  
+| -------------------------------------------- | ---------------- |
+| Generate Reference Genome Index              | bwa-mem/samtools |
+| Raw data QC                                  | FastQC/MultiQC   |
+| Adapter sequence trimming                    | fastp            |
+| Align Reads                                  | bwa-meth         |
+| Merge aligned .bam                           | Sambamba         | 
+| Deduplicate                                  | Picard           | 
+| Generate mpileup                             | SAMtools         | 
+| Convert mpileup to sync                      | grenedalf        |
+| FST                                          | grenedalf        | 
+
 ## Running on the cluster
 
 Dependencies:
