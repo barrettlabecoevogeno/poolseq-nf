@@ -28,15 +28,15 @@ make
 You should run this in a screen session.
 
 ```
-nextflow run main.nf --sample_sheet <path_to_sample_sheet> --species c_elegans -profile quest -resume
+nextflow run main.nf -cpus <# of cpus> --sample_sheet <path_to_sample_sheet> --species c_elegans -profile quest -resume
 
 Ex:
-nextflow run main.nf --sample_sheet sample_sheet.csv --genome "/home/$USER/scratch/pool-seq/genome/genome.fa" -resume
+nextflow run main.nf -cpus 8 --sample_sheet sample_sheet.csv --genome "/home/$USER/scratch/pool-seq/genome/genome.fa" -resume
 ```
 
 ## --sample_sheet
 
-The `sample sheet` for alignment is the output from the [trim-fq-nf](https://github.com/AndersenLab/trim-fq-nf) pipeline. the `sample sheet` has the following columns:
+The `sample sheet` has the following columns:
 
 * __pool__ - the name of the pool. Multiple sequencing runs of the same strain are merged together.
 * __pl__ - Sequencing technology used to generate the sequencing data. Valid values: ILLUMINA, SOLID, LS454, HELICOS and PACBIO.
@@ -47,4 +47,10 @@ The `sample sheet` for alignment is the output from the [trim-fq-nf](https://git
 * __seq_folder__ - The path to FASTQ
 
 ![Sample_sheet](img/alignment_sample_sheet.jpg)
+
+## TODO list
+
+* Add custom parameters
+* Add cluster profile
+* Create module containers
 
