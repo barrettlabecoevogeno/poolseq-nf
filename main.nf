@@ -9,6 +9,7 @@ nextflow.enable.dsl=2
 /*
     Params
 */
+params.cpus = 1
 params.publish_dir = './results'
 
 // Define the genome
@@ -70,7 +71,7 @@ process fastqc {
 
     script:
     """
-    fastqc -t 8 "${fq1}" "${fq2}"
+    fastqc -t ${params.cpus} "${fq1}" "${fq2}"
     """
 }
 
@@ -138,10 +139,10 @@ process alignment {
 			  "PL:${row.pl}"].join("\\t")
 
     """
-        bwa mem -t 8 -R '${RG}' ${idxbase} ${trimmed_R1} ${trimmed_R2} | \\
-        sambamba view --nthreads=8 --show-progress --sam-input --format=bam --with-header /dev/stdin | \\
-        sambamba sort --nthreads=8 --show-progress --tmpdir=. --out=${row.id}.bam /dev/stdin
-        sambamba index --nthreads=8 ${row.id}.bam
+        bwa mem -t ${params.cpus} -R '${RG}' ${idxbase} ${trimmed_R1} ${trimmed_R2} | \\
+        sambamba view --nthreads=${params.cpus} --show-progress --sam-input --format=bam --with-header /dev/stdin | \\
+        sambamba sort --nthreads=${params.cpus} --show-progress --tmpdir=. --out=${row.id}.bam /dev/stdin
+        sambamba index --nthreads=${params.cpus} ${row.id}.bam
         if [[ ! \$(samtools view ${row.id}.bam | head -n 10) ]]; then
             exit 1;
         fi
@@ -170,8 +171,8 @@ process merge_bam {
             """
         else
             """
-                sambamba merge --nthreads=8 --show-progress ${pool}.bam ${bam}
-                sambamba index --nthreads=8 ${pool}.bam
+                sambamba merge --nthreads=${params.cpus} --show-progress ${pool}.bam ${bam}
+                sambamba index --nthreads=${params.cpus} ${pool}.bam
             """
 }
 
@@ -196,7 +197,7 @@ process mark_dups {
     """
         java -Xmx20g -Xms1g -jar $EBROOTPICARD/picard.jar  MarkDuplicates -I ${pool}.in.bam -O ${pool}.bam -M ${pool}.duplicates.txt --VALIDATION_STRINGENCY STRICT --REMOVE_DUPLICATES false --TAGGING_POLICY All --REMOVE_SEQUENCING_DUPLICATES TRUE --SORTING_COLLECTION_SIZE_RATIO 0.1
 
-        sambamba index --nthreads=8 ${pool}.bam
+        sambamba index --nthreads=${params.cpus} ${pool}.bam
     """
 }
 
@@ -210,7 +211,6 @@ process samtools_mpileup {
     publishDir "${params.publish_dir}/07_mpileup", mode: 'copy'
 
     input:
-    //tuple val(row), path("*.bam"), path("${row.pool}.bam.bai")
     file(npr)
     path(genome)
     path(bwa_idx)
@@ -222,7 +222,6 @@ process samtools_mpileup {
 
     script:
     def idxbase = bwa_idx[0].baseName
-    //def all_bam = npr
     """
     find . -name "*.bam" > all_bams.txt
     samtools mpileup -d 1000 -Q 20 -B -f ${idxbase} -b all_bams.txt -o all_bams.mpileup
@@ -243,7 +242,7 @@ process mpileup_to_sync {
     path("*.sync"), emit: "sync"
     script:
     """
-    grenedalf sync --pileup-path *.mpileup --pileup-min-base-qual 20 --threads 8 --reference-genome-fai-file *.fai
+    grenedalf sync --pileup-path *.mpileup --pileup-min-base-qual 20 --threads ${params.cpus} --reference-genome-fai-file *.fai
     """
 }
 
@@ -261,7 +260,7 @@ process fst {
     path("*.*"), emit: "fst"
     script:
     """
-    grenedalf fst --sync-path *.sync --window-type sliding --window-sliding-width 100 --method unbiased-nei --pool-sizes 2 --reference-genome-fai-file *.fai
+    grenedalf fst --sync-path *.sync --window-type sliding --window-sliding-width 100 --method unbiased-nei --pool-sizes 2 --threads ${params.cpus} --reference-genome-fai-file *.fai
     """
 }
 
